@@ -66,10 +66,7 @@ gltfLoader.load("models/mari.glb", function (gltf) {
     animationsFolder.add(animations, "default");
     activeAction = animationActions[0];
     scene.add(gltf.scene);
-    gltf.parser.getDependencies('material').then(function (materials) {
-        //materials[0] = mainMaterial
-        //console.log(materials[0])
-    });
+
     //add an animation from another file
     gltfLoader.load("models/mari-idle.glb", function (gltf) {
         console.log("loaded idle");
@@ -156,14 +153,6 @@ function onWindowResize() {
 //var stats = Stats();
 //document.body.appendChild(stats.dom);
 var animations = {
-    default: function () {
-        setAction(animationActions[0]);
-        scene.traverse(function (node) {
-            if (node.type = "SkinnedMesh") {
-                console.log(node.getObjectByName("KaoruSakaki-Head012"));
-            }
-        });
-    },
     idle: function () {
         setAction(animationActions[1]);
     },
