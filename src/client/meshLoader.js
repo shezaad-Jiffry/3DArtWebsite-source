@@ -6,9 +6,11 @@ import {OutlinePass} from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader";
 import { DoubleSide, MeshBasicMaterial } from "three";
 import { GUI } from "dat.gui";
-export default function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMixer){
+
+var lighting = null;
+export function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMixer, gui = GUI){
     //renderer renders out to the canvas tag in the main html
-    const  renderer = new THREE.WebGLRenderer({canvas: document.querySelector("canvas"), antialias: true});
+    const  renderer = new THREE.WebGLRenderer({canvas: document.querySelector("canvas"), antialias: false});
     //important so scene is rendered only into the canvas element
     const canvas = renderer.domElement;
     const width = canvas.clientWidth;
@@ -18,7 +20,6 @@ export default function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMix
     renderer.setSize(width, height, false);
     //scene elements
     const scene = new THREE.Scene();
-    const backgroundLoader = new THREE.TextureLoader().load('img/sky.jpg');
     //camera  and controls
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth * 0.5 / window.innerHeight * 1, 0.1, 1000 );
     var controls = new OrbitControls(camera, renderer.domElement);
@@ -28,14 +29,10 @@ export default function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMix
     var selectedObjects = [];
     //adds objects to get outlined
     function addSelectedObject( object ) {
-
         selectedObjects = [];
         selectedObjects.push( object );
-
     }
     
-    //adds the skybox
-
     //initilizes all the properties needed
     function init(){
         //add the skybox, texture can be changed to whatever is needed
@@ -60,8 +57,6 @@ export default function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMix
         }, function(error) {
             console.log(error);
         });
-        
-
         //camera
         camera.position.set(0.8, 1.4, 1.0);
         //camera controls
@@ -75,6 +70,40 @@ export default function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMix
         light1.position.set(200, 100, 300);
         scene.add(light1)
         scene.add(ambientLight)
+        //add in lighting gui to control scene lights
+        
+        
+        var lights = {
+            shaded: function () {
+                setLight(true);
+            },
+            unshaded: function () {
+                setLight(false);
+            },
+        };
+        var setLight = function (enabled) {
+            if (enabled) {
+                scene.add(light1);
+                ambientLight.intensity = 0.5
+
+            }
+            else {
+                scene.remove(light1);
+                ambientLight.intensity = 1
+
+            }
+        };
+
+        if(lighting == null){
+            lighting = gui.addFolder("Lighting");
+        }
+        else{
+            gui.removeFolder(lighting)
+            lighting = gui.addFolder("Lighting");
+        }
+        lighting.add(lights, "shaded");
+        lighting.add(lights, "unshaded");
+        lighting.open();
         //post process
         composer.addPass( renderPass );
         //adds outlines on mesh
@@ -105,6 +134,7 @@ export default function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMix
     }
     //dual purpose simply makes the mesh spin while also making the program listen to and react to css/ window sizes being changed
     var clock = new THREE.Clock();
+   
     function animate() {
         requestAnimationFrame(animate);
         controls.update();
@@ -130,4 +160,5 @@ export default function meshLoader(geo = THREE.Group, mixer = THREE.AnimationMix
     //observer that listens to the page being changed
     const resizeObserver = new ResizeObserver(resizeCanvasToDisplaySize);
     resizeObserver.observe(renderer.domElement, {box: 'content-box'});
+    
 }
